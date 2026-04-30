@@ -8,5 +8,8 @@
   "assets": {
     "binding": "ASSETS",
     "directory": "dist"
-  }
+  },
+  "routes": [
+    { "pattern": "castellan-shadow.sunhomelab.com", "custom_domain": true }
+  ]
 }

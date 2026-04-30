@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="About — castellan-shadow">
+  <article class="prose prose-slate max-w-3xl space-y-6">
+    <h1 class="text-3xl font-semibold text-ink">About castellan-shadow</h1>
+    <p class="text-base leading-relaxed text-ink">
+      castellan-shadow is an independent, educational tool that demonstrates what
+      attribution-grade analytics over Castellan Group's two ETFs would look like —
+      built end-to-end from public data only, in a few days as a portfolio project.
+    </p>
+
+    <h2 class="text-xl font-semibold text-ink">How it works</h2>
+    <ol class="list-decimal space-y-3 pl-6 text-ink">
+      <li>
+        A <strong>Spring Boot 3.4 / Java 21</strong> backend runs a daily ETL that
+        scrapes the holdings table at <code class="rounded bg-paper px-1 font-mono">castellanetf.com/{'{ticker}'}</code>
+        and parses Part F / Schedule of Investments PDFs hosted by ETF Architect
+        using <strong>Apache PDFBox</strong>.
+      </li>
+      <li>
+        Holdings are stored in <strong>Postgres</strong> (H2 for local dev) with
+        Flyway migrations. Options are properly modeled in a deduped
+        <code class="rounded bg-paper px-1 font-mono">option_contract</code> table —
+        strike, expiration, type, FLEX flag — so the same contract can be linked
+        from multiple snapshots.
+      </li>
+      <li>
+        A <strong>NameTickerResolver</strong> learns the company-name → ticker
+        mapping from the live website scrape and back-fills historical Part F
+        rows that only carry company names.
+      </li>
+      <li>
+        Static JSON fixtures snapshot the API output. This Astro 5 + Tailwind
+        site renders them at build time and deploys to Cloudflare.
+      </li>
+    </ol>
+
+    <h2 class="text-xl font-semibold text-ink">What it shows about CTEF</h2>
+    <p class="text-ink">
+      CTEF runs a GARP equity sleeve (up to 50 names, max 20% per sector) plus a
+      derivatives sleeve. The most interesting structural detail —
+      <em>only visible from the SEC Part F</em> — is that the options sleeve is
+      a series of <strong>1×2 ratio FLEX call spreads</strong>: long the lower
+      strike on a ticker, short twice as many contracts at a higher strike on the
+      same expiration. The two legs roughly self-finance each other.
+    </p>
+
+    <h2 class="text-xl font-semibold text-ink">What's not here yet</h2>
+    <ul class="list-disc space-y-2 pl-6 text-ink">
+      <li>Daily NAV time-series and benchmark-relative attribution charts</li>
+      <li>Brinson-Fachler sector decomposition</li>
+      <li>Fama-French rolling factor regression</li>
+      <li>Covered-call optimization sandbox for CTIF-style names</li>
+    </ul>
+    <p class="text-sm text-muted">
+      Those are the next layers. The data foundation under this dashboard is what
+      makes them tractable.
+    </p>
+  </article>
+</BaseLayout>

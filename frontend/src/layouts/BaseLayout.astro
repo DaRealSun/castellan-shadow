@@ -1,0 +1,60 @@
+---
+const { title, description } = Astro.props as {
+  title: string;
+  description?: string;
+};
+const desc = description ?? 'An independent educational dashboard tracking the Castellan Targeted Equity (CTEF) and Castellan Targeted Income (CTIF) ETFs from public data.';
+---
+<!doctype html>
+<html lang="en" class="bg-paper text-ink">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <title>{title}</title>
+    <meta name="description" content={desc} />
+  </head>
+  <body class="min-h-screen font-sans antialiased">
+    <header class="border-b border-rule bg-white">
+      <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <a href="/" class="flex items-baseline gap-3">
+          <span class="font-mono text-sm tracking-tight text-accent">castellan-shadow</span>
+          <span class="text-xs text-muted">independent educational tool</span>
+        </a>
+        <nav class="flex items-center gap-6 text-sm">
+          <a href="/ctef" class="text-ink hover:text-accent">CTEF</a>
+          <a href="/ctif" class="text-ink hover:text-accent">CTIF</a>
+          <a href="/about" class="text-ink hover:text-accent">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-6 py-10">
+      <slot />
+    </main>
+
+    <footer class="mt-20 border-t border-rule bg-white">
+      <div class="mx-auto max-w-6xl px-6 py-8 text-xs leading-relaxed text-muted">
+        <p>
+          <strong class="text-ink">Disclaimer.</strong> This is an independent educational tool.
+          It is not affiliated with, endorsed by, or sponsored by Castellan Group LLC,
+          Arin Risk Advisors LLC, Empowered Funds LLC (EA Advisers / ETF Architect),
+          or PINE Distributors LLC. Nothing here is investment advice, a recommendation,
+          a benchmark, or a solicitation. All data is derived from public sources and
+          may contain errors.
+        </p>
+        <p class="mt-3">
+          Sources: <a class="underline" href="https://castellanetf.com">castellanetf.com</a>
+          (daily holdings tables) and SEC-filed Part F / Schedule of Investments
+          documents distributed by ETF Architect. Built by
+          <a class="underline" href="https://minhsonle.sunhomelab.com">Minh Son Le</a>.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

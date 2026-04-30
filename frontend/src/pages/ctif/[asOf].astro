@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FundDashboard from '../../components/FundDashboard.astro';
+import { datesFor, snapshotFor } from '../../lib/holdings';
+
+export function getStaticPaths() {
+  const dates = datesFor('CTIF');
+  return dates.slice(1).map((d) => ({ params: { asOf: d } }));
+}
+
+const { asOf } = Astro.params as { asOf: string };
+const snap = snapshotFor('CTIF', asOf);
+---
+<BaseLayout title={`CTIF — ${snap.asOf}`}>
+  <FundDashboard ticker="CTIF" snapshot={snap} />
+</BaseLayout>

@@ -1,0 +1,46 @@
+---
+import { type Holding, fmtMoney, fmtNumber, fmtPct } from '../lib/holdings';
+const { rows, kind } = Astro.props as { rows: Holding[]; kind: 'EQUITY' | 'OPTION' | 'CASH' };
+const filtered = rows.filter((r) => r.securityType === kind);
+filtered.sort((a, b) => Math.abs(b.weightPct ?? 0) - Math.abs(a.weightPct ?? 0));
+const isOption = kind === 'OPTION';
+---
+{filtered.length === 0 ? (
+  <p class="text-sm text-muted">No {kind.toLowerCase()} positions in this snapshot.</p>
+) : (
+  <div class="overflow-x-auto rounded-lg border border-rule bg-white">
+    <table class="min-w-full text-sm">
+      <thead class="border-b border-rule bg-paper">
+        <tr class="text-left">
+          <th class="px-4 py-3 font-medium text-muted">{isOption ? 'Contract' : 'Ticker'}</th>
+          <th class="px-4 py-3 font-medium text-muted">Name</th>
+          <th class="px-4 py-3 text-right font-medium text-muted">{isOption ? 'Contracts' : 'Shares'}</th>
+          <th class="px-4 py-3 text-right font-medium text-muted">Market Value</th>
+          <th class="px-4 py-3 text-right font-medium text-muted">Weight</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-rule">
+        {filtered.map((h) => {
+          const negative = (h.marketValue ?? 0) < 0;
+          return (
+            <tr>
+              <td class="px-4 py-2.5 font-mono text-xs">
+                {isOption ? h.instrumentSymbol : (h.underlyingTicker ?? h.instrumentSymbol)}
+              </td>
+              <td class="px-4 py-2.5 text-ink">{h.securityName ?? '—'}</td>
+              <td class={`px-4 py-2.5 text-right font-mono ${negative ? 'text-minus' : ''}`}>
+                {fmtNumber(h.shares)}
+              </td>
+              <td class={`px-4 py-2.5 text-right font-mono ${negative ? 'text-minus' : ''}`}>
+                {fmtMoney(h.marketValue)}
+              </td>
+              <td class={`px-4 py-2.5 text-right font-mono ${negative ? 'text-minus' : ''}`}>
+                {fmtPct(h.weightPct)}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+)}

@@ -1,0 +1,23 @@
+---
+import { fmtDate } from '../lib/holdings';
+const { ticker, dates, current } = Astro.props as {
+  ticker: string;
+  dates: string[];
+  current: string;
+};
+---
+<div class="flex flex-wrap items-center gap-2">
+  <span class="text-xs uppercase tracking-wider text-muted">As of</span>
+  {dates.map((d) => (
+    <a
+      href={d === dates[0] ? `/${ticker.toLowerCase()}` : `/${ticker.toLowerCase()}/${d}`}
+      class={`rounded-md border px-3 py-1 text-xs font-medium transition ${
+        d === current
+          ? 'border-accent bg-accent text-white'
+          : 'border-rule bg-white text-ink hover:border-accent'
+      }`}
+    >
+      {fmtDate(d)}
+    </a>
+  ))}
+</div>

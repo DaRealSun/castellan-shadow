@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "castellan-shadow",
+  "compatibility_date": "2026-04-30",
+  "observability": { "enabled": true },
+  "main": "dist/_worker.js/index.js",
+  "compatibility_flags": ["global_fetch_strictly_public", "nodejs_compat"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "dist"
+  }
+}

@@ -1,0 +1,9 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FundDashboard from '../../components/FundDashboard.astro';
+import { snapshotFor } from '../../lib/holdings';
+const snap = snapshotFor('CTIF');
+---
+<BaseLayout title={`CTIF — Castellan Targeted Income ETF (as of ${snap.asOf})`}>
+  <FundDashboard ticker="CTIF" snapshot={snap} />
+</BaseLayout>

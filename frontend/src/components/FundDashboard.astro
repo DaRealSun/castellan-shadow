@@ -1,0 +1,87 @@
+---
+import {
+  type CastellanTicker,
+  type HoldingsSnapshot,
+  computeStats,
+  fmtDate,
+  fmtMoney,
+  fmtNumber,
+  fmtPct,
+  getEtf,
+  datesFor,
+} from '../lib/holdings';
+import StatCard from './StatCard.astro';
+import HoldingsTable from './HoldingsTable.astro';
+import DateSelector from './DateSelector.astro';
+
+const { ticker, snapshot } = Astro.props as {
+  ticker: CastellanTicker;
+  snapshot: HoldingsSnapshot;
+};
+
+const etf = getEtf(ticker);
+const stats = computeStats(snapshot);
+const dates = datesFor(ticker);
+---
+<section class="space-y-2">
+  <p class="font-mono text-xs uppercase tracking-widest text-accent">{etf.ticker}</p>
+  <h1 class="text-3xl font-semibold tracking-tight text-ink">{etf.name}</h1>
+  <p class="text-sm text-muted">
+    Inception {fmtDate(etf.inceptionDate)} · Expense ratio {fmtPct(etf.expenseRatio * 100, 2)} · Cboe BZX
+  </p>
+</section>
+
+<section class="mt-6">
+  <DateSelector ticker={ticker} dates={dates} current={snapshot.asOf} />
+</section>
+
+<section class="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+  <StatCard label="Net Assets" value={fmtMoney(stats.totalAssets, 'mm')}
+            sublabel={`As of ${fmtDate(snapshot.asOf)}`} />
+  <StatCard label="Equities" value={fmtNumber(stats.equityCount)}
+            sublabel="Long stock positions" />
+  <StatCard label="Options" value={fmtNumber(stats.optionCount)}
+            sublabel="Contracts in sleeve" />
+  <StatCard label="Cash / MMF" value={fmtNumber(stats.cashCount)}
+            sublabel="Liquidity sleeve" />
+</section>
+
+{stats.optionCount > 0 && (
+  <section class="mt-8 rounded-lg border border-rule bg-white p-6">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">Options sleeve</h2>
+    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div>
+        <div class="text-xs uppercase text-muted">Long contracts (purchased)</div>
+        <div class="mt-1 font-mono text-xl text-plus">{fmtMoney(stats.longOptionsValue)}</div>
+      </div>
+      <div>
+        <div class="text-xs uppercase text-muted">Short contracts (written)</div>
+        <div class="mt-1 font-mono text-xl text-minus">{fmtMoney(stats.writtenOptionsValue)}</div>
+      </div>
+    </div>
+    <p class="mt-4 text-xs text-muted">
+      In CTEF, calls are typically structured as 1×2 ratio FLEX call spreads — long the lower
+      strike, short twice as many at a higher strike on the same expiration. In CTIF, written
+      calls are short-dated covered calls used to manufacture income on dividend growers.
+    </p>
+  </section>
+)}
+
+<section class="mt-10 space-y-3">
+  <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">Equities</h2>
+  <HoldingsTable rows={snapshot.holdings} kind="EQUITY" />
+</section>
+
+{stats.optionCount > 0 && (
+  <section class="mt-10 space-y-3">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">Options</h2>
+    <HoldingsTable rows={snapshot.holdings} kind="OPTION" />
+  </section>
+)}
+
+{stats.cashCount > 0 && (
+  <section class="mt-10 space-y-3">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">Cash & equivalents</h2>
+    <HoldingsTable rows={snapshot.holdings} kind="CASH" />
+  </section>
+)}

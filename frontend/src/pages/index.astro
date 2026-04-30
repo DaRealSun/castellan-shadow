@@ -1,0 +1,80 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { etfs, datesFor, snapshotFor, computeStats, fmtMoney, fmtDate, fmtNumber } from '../lib/holdings';
+
+const ctef = snapshotFor('CTEF');
+const ctif = snapshotFor('CTIF');
+const ctefStats = computeStats(ctef);
+const ctifStats = computeStats(ctif);
+const cards = [
+  { etf: etfs.find((e) => e.ticker === 'CTEF')!, snap: ctef, stats: ctefStats },
+  { etf: etfs.find((e) => e.ticker === 'CTIF')!, snap: ctif, stats: ctifStats },
+];
+const allDates = Array.from(new Set([...datesFor('CTEF'), ...datesFor('CTIF')])).sort().reverse();
+---
+<BaseLayout title="castellan-shadow — CTEF & CTIF dashboard">
+  <section class="border-b border-rule pb-10">
+    <p class="font-mono text-xs uppercase tracking-widest text-accent">independent educational tool</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight text-ink">
+      A live view into the Castellan ETFs
+    </h1>
+    <p class="mt-4 max-w-2xl text-base leading-relaxed text-muted">
+      castellan-shadow ingests the daily holdings tables published at
+      <a class="text-accent underline" href="https://castellanetf.com">castellanetf.com</a>
+      together with SEC-filed Part F and Schedule of Investments PDFs, and presents
+      a unified time-series view of how Castellan Group's two ETFs are positioned —
+      including the ratio FLEX call spreads in the equity sleeve.
+    </p>
+
+    <p class="mt-4 max-w-2xl text-sm text-muted">
+      This is not a Castellan product. It exists to demonstrate what an
+      attribution-grade tool over their public disclosures looks like, built end-to-end:
+      Java/Spring Boot ETL, PDFBox-based parsing of SEC filings, Postgres-backed
+      time-series, and a static-rendered Astro dashboard.
+    </p>
+  </section>
+
+  <section class="mt-10 grid gap-6 md:grid-cols-2">
+    {cards.map(({ etf, snap, stats }) => (
+      <a href={`/${etf.ticker.toLowerCase()}`}
+         class="block rounded-lg border border-rule bg-white p-6 transition hover:border-accent">
+        <div class="flex items-baseline justify-between">
+          <span class="font-mono text-sm tracking-tight text-accent">{etf.ticker}</span>
+          <span class="text-xs uppercase text-muted">{fmtDate(snap.asOf)}</span>
+        </div>
+        <h2 class="mt-2 text-xl font-semibold text-ink">{etf.name}</h2>
+        <dl class="mt-6 grid grid-cols-3 gap-3 text-sm">
+          <div>
+            <dt class="text-xs uppercase text-muted">Net Assets</dt>
+            <dd class="mt-1 font-mono">{fmtMoney(stats.totalAssets, 'mm')}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase text-muted">Equities</dt>
+            <dd class="mt-1 font-mono">{fmtNumber(stats.equityCount)}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase text-muted">Options</dt>
+            <dd class="mt-1 font-mono">{fmtNumber(stats.optionCount)}</dd>
+          </div>
+        </dl>
+        <p class="mt-4 text-xs text-muted">View full positions →</p>
+      </a>
+    ))}
+  </section>
+
+  <section class="mt-12 rounded-lg border border-rule bg-white p-6">
+    <h3 class="text-sm font-semibold uppercase tracking-wider text-muted">
+      Snapshots in the dataset
+    </h3>
+    <p class="mt-3 text-sm leading-relaxed text-ink">
+      Each historical date below is a real point-in-time disclosure parsed from
+      Castellan's public PDFs (Part F or Semi-Annual Schedule of Investments).
+      The most recent snapshot is the live HTML scrape from castellanetf.com.
+    </p>
+    <ul class="mt-4 grid grid-cols-2 gap-2 text-sm text-ink md:grid-cols-4">
+      {allDates.map((d) => (
+        <li class="rounded border border-rule bg-paper px-3 py-2 font-mono">{fmtDate(d)}</li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>

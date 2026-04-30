@@ -137,3 +137,86 @@ export function fmtDate(s: string): string {
     year: 'numeric',
   });
 }
+
+export function fmtShortDate(s: string): string {
+  const d = new Date(s);
+  return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+}
+
+export type HistoryPoint = {
+  asOf: string;
+  totalAssets: number;
+  equityCount: number;
+  optionCount: number;
+  longOptionsValue: number;
+  writtenOptionsValue: number;
+};
+
+export function historyFor(ticker: CastellanTicker): HistoryPoint[] {
+  return datesFor(ticker)
+    .slice()
+    .reverse() // oldest first for charting
+    .map((asOf) => {
+      const snap = snapshotFor(ticker, asOf);
+      const stats = computeStats(snap);
+      return {
+        asOf,
+        totalAssets: stats.totalAssets,
+        equityCount: stats.equityCount,
+        optionCount: stats.optionCount,
+        longOptionsValue: stats.longOptionsValue,
+        writtenOptionsValue: stats.writtenOptionsValue,
+      };
+    });
+}
+
+export type HoldingsDelta = {
+  added: { name: string; ticker: string; weightPct: number | null; marketValue: number | null }[];
+  removed: { name: string; ticker: string; weightPct: number | null; marketValue: number | null }[];
+};
+
+/** Compare two snapshots (latest vs prior) to identify what entered and what exited. */
+export function deltaBetween(
+  current: HoldingsSnapshot,
+  prior: HoldingsSnapshot,
+): HoldingsDelta {
+  const norm = (h: Holding) =>
+    (h.securityName ?? h.instrumentSymbol).toLowerCase()
+      .replace(/[.,]/g, '')
+      .replace(/\s+(inc|corp|company|co|ltd|plc|llc)\b/g, '')
+      .trim();
+
+  const equityFilter = (h: Holding) =>
+    h.securityType === 'EQUITY' &&
+    !(h.securityName ?? '').toUpperCase().includes('ETF') &&
+    !(h.securityName ?? '').toUpperCase().includes('BOX');
+
+  const currentNames = new Map(current.holdings.filter(equityFilter).map((h) => [norm(h), h]));
+  const priorNames   = new Map(prior.holdings.filter(equityFilter).map((h) => [norm(h), h]));
+
+  const added: HoldingsDelta['added'] = [];
+  for (const [k, h] of currentNames) {
+    if (!priorNames.has(k)) {
+      added.push({
+        name: h.securityName ?? h.instrumentSymbol,
+        ticker: h.instrumentSymbol,
+        weightPct: h.weightPct,
+        marketValue: h.marketValue,
+      });
+    }
+  }
+  const removed: HoldingsDelta['removed'] = [];
+  for (const [k, h] of priorNames) {
+    if (!currentNames.has(k)) {
+      removed.push({
+        name: h.securityName ?? h.instrumentSymbol,
+        ticker: h.instrumentSymbol,
+        weightPct: h.weightPct,
+        marketValue: h.marketValue,
+      });
+    }
+  }
+  added.sort((a, b) => (b.weightPct ?? 0) - (a.weightPct ?? 0));
+  removed.sort((a, b) => (b.weightPct ?? 0) - (a.weightPct ?? 0));
+  return { added, removed };
+}

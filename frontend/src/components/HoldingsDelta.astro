@@ -1,0 +1,56 @@
+---
+import { type HoldingsDelta, fmtPct, fmtDate } from '../lib/holdings';
+
+const { delta, currentDate, priorDate } = Astro.props as {
+  delta: HoldingsDelta;
+  currentDate: string;
+  priorDate: string;
+};
+---
+<div class="grid gap-4 md:grid-cols-2">
+  <div class="rounded-lg border border-rule bg-white p-5">
+    <h3 class="text-sm font-semibold uppercase tracking-wider text-plus">
+      Added since {fmtDate(priorDate)}
+    </h3>
+    <p class="mt-1 text-xs text-muted">
+      Equity positions present in {fmtDate(currentDate)} that were not in
+      the prior snapshot. {delta.added.length} {delta.added.length === 1 ? 'position' : 'positions'}.
+    </p>
+    {delta.added.length === 0 ? (
+      <p class="mt-3 text-sm text-muted">No new positions.</p>
+    ) : (
+      <ul class="mt-3 divide-y divide-rule text-sm">
+        {delta.added.map((p) => (
+          <li class="flex items-baseline justify-between py-2">
+            <span class="font-mono text-xs text-ink">{p.ticker}</span>
+            <span class="ml-3 flex-1 truncate text-ink">{p.name}</span>
+            <span class="ml-3 font-mono text-xs text-muted">{fmtPct(p.weightPct)}</span>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+
+  <div class="rounded-lg border border-rule bg-white p-5">
+    <h3 class="text-sm font-semibold uppercase tracking-wider text-minus">
+      Exited since {fmtDate(priorDate)}
+    </h3>
+    <p class="mt-1 text-xs text-muted">
+      Equity positions present in {fmtDate(priorDate)} that are no longer
+      in {fmtDate(currentDate)}. {delta.removed.length} {delta.removed.length === 1 ? 'position' : 'positions'}.
+    </p>
+    {delta.removed.length === 0 ? (
+      <p class="mt-3 text-sm text-muted">No exits.</p>
+    ) : (
+      <ul class="mt-3 divide-y divide-rule text-sm">
+        {delta.removed.map((p) => (
+          <li class="flex items-baseline justify-between py-2">
+            <span class="font-mono text-xs text-ink">{p.ticker}</span>
+            <span class="ml-3 flex-1 truncate text-ink">{p.name}</span>
+            <span class="ml-3 font-mono text-xs text-muted">{fmtPct(p.weightPct)}</span>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</div>

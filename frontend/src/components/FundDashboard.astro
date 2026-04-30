@@ -3,16 +3,21 @@ import {
   type CastellanTicker,
   type HoldingsSnapshot,
   computeStats,
+  deltaBetween,
   fmtDate,
   fmtMoney,
   fmtNumber,
   fmtPct,
   getEtf,
   datesFor,
+  historyFor,
+  snapshotFor,
 } from '../lib/holdings';
 import StatCard from './StatCard.astro';
 import HoldingsTable from './HoldingsTable.astro';
 import DateSelector from './DateSelector.astro';
+import NetAssetsChart from './NetAssetsChart.astro';
+import HoldingsDelta from './HoldingsDelta.astro';
 
 const { ticker, snapshot } = Astro.props as {
   ticker: CastellanTicker;
@@ -22,6 +27,13 @@ const { ticker, snapshot } = Astro.props as {
 const etf = getEtf(ticker);
 const stats = computeStats(snapshot);
 const dates = datesFor(ticker);
+const history = historyFor(ticker);
+
+// Compare current snapshot to the immediately prior snapshot, if one exists.
+const priorDate = dates[dates.findIndex((d) => d === snapshot.asOf) + 1];
+const delta = priorDate
+  ? deltaBetween(snapshot, snapshotFor(ticker, priorDate))
+  : null;
 ---
 <section class="space-y-2">
   <p class="font-mono text-xs uppercase tracking-widest text-accent">{etf.ticker}</p>
@@ -45,6 +57,36 @@ const dates = datesFor(ticker);
   <StatCard label="Cash / MMF" value={fmtNumber(stats.cashCount)}
             sublabel="Liquidity sleeve" />
 </section>
+
+{history.length > 1 && (
+  <section class="mt-8 rounded-lg border border-rule bg-white p-6">
+    <div class="flex flex-wrap items-baseline justify-between gap-2">
+      <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">
+        Net assets over time
+      </h2>
+      <p class="text-xs text-muted">
+        {history.length} snapshots · derived from public Castellan disclosures
+      </p>
+    </div>
+    <div class="mt-4">
+      <NetAssetsChart points={history} />
+    </div>
+  </section>
+)}
+
+{delta && (delta.added.length > 0 || delta.removed.length > 0) && (
+  <section class="mt-8">
+    <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+      <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">
+        Position changes
+      </h2>
+      <p class="text-xs text-muted">
+        {fmtDate(priorDate)} → {fmtDate(snapshot.asOf)}
+      </p>
+    </div>
+    <HoldingsDelta delta={delta} currentDate={snapshot.asOf} priorDate={priorDate} />
+  </section>
+)}
 
 {stats.optionCount > 0 && (
   <section class="mt-8 rounded-lg border border-rule bg-white p-6">

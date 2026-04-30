@@ -1,0 +1,74 @@
+---
+import { type HistoryPoint, fmtShortDate, fmtMoney } from '../lib/holdings';
+
+const { points, height = 160 } = Astro.props as { points: HistoryPoint[]; height?: number };
+
+const W = 720;
+const PAD_X = 56;
+const PAD_TOP = 24;
+const PAD_BOT = 36;
+
+const values = points.map((p) => p.totalAssets);
+const min = Math.min(...values, 0);
+const max = Math.max(...values);
+const range = max - min || 1;
+
+const innerW = W - PAD_X * 2;
+const innerH = height - PAD_TOP - PAD_BOT;
+
+const x = (i: number) =>
+  points.length === 1
+    ? W / 2
+    : PAD_X + (i / (points.length - 1)) * innerW;
+const y = (v: number) => PAD_TOP + innerH - ((v - min) / range) * innerH;
+
+const path = points
+  .map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.totalAssets).toFixed(1)}`)
+  .join(' ');
+
+const areaPath =
+  `M${x(0).toFixed(1)},${(PAD_TOP + innerH).toFixed(1)} ` +
+  points.map((p, i) => `L${x(i).toFixed(1)},${y(p.totalAssets).toFixed(1)}`).join(' ') +
+  ` L${x(points.length - 1).toFixed(1)},${(PAD_TOP + innerH).toFixed(1)} Z`;
+
+// y-axis ticks
+const tickValues = [min, min + range / 2, max];
+---
+
+<svg viewBox={`0 0 ${W} ${height}`} class="h-auto w-full" role="img"
+     aria-label="Net assets over time">
+  <defs>
+    <linearGradient id="netAssetsFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#0f766e" stop-opacity="0.20" />
+      <stop offset="100%" stop-color="#0f766e" stop-opacity="0.00" />
+    </linearGradient>
+  </defs>
+
+  {tickValues.map((tv) => (
+    <g>
+      <line x1={PAD_X} x2={W - PAD_X} y1={y(tv)} y2={y(tv)}
+            stroke="#e5e7eb" stroke-dasharray="2 4" />
+      <text x={PAD_X - 8} y={y(tv) + 4} text-anchor="end"
+            font-size="10" fill="#64748b" font-family="JetBrains Mono">
+        {fmtMoney(tv, 'mm')}
+      </text>
+    </g>
+  ))}
+
+  <path d={areaPath} fill="url(#netAssetsFill)" />
+  <path d={path} fill="none" stroke="#0f766e" stroke-width="2" />
+
+  {points.map((p, i) => (
+    <g>
+      <circle cx={x(i)} cy={y(p.totalAssets)} r="4" fill="#0f766e" />
+      <text x={x(i)} y={y(p.totalAssets) - 12} text-anchor="middle"
+            font-size="10" font-family="JetBrains Mono" fill="#0b1020">
+        {fmtMoney(p.totalAssets, 'mm')}
+      </text>
+      <text x={x(i)} y={height - 12} text-anchor="middle"
+            font-size="10" fill="#64748b">
+        {fmtShortDate(p.asOf)}
+      </text>
+    </g>
+  ))}
+</svg>

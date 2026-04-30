@@ -49,3 +49,6 @@ data/local/
 .env.local
 *.pem
 secrets/
+
+# Personal application materials — kept local, not published
+docs/application/

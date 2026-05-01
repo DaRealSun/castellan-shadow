@@ -2,7 +2,7 @@
 
 > A live, public-data dashboard for the Castellan Targeted Equity ETF (CTEF) and Castellan Targeted Income ETF (CTIF), with attribution-grade modeling of the FLEX options sleeve. Built end-to-end as a portfolio piece.
 
-**🌐 Live site:** *(deploy step pending — see [`docs/DEPLOY.md`](docs/DEPLOY.md))*
+**🌐 Live site:** https://castellan-shadow.sunhomelab.com
 **📂 Repo:** https://github.com/DaRealSun/castellan-shadow
 
 ---
